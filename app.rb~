@@ -1,0 +1,6 @@
+
+echo "gooo."
+
+
+STDIN_SOCK = Socket.for_fd(STDIN.fileno)
+echo STDIN_SOCK.remote_address
