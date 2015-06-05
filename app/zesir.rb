@@ -1,6 +1,11 @@
+require_relative 'types'
+require_relative 'worker'
+
 require 'socket'
 
-# ------------ opened fd in argument ------------
+
+
+# ------------ opened fd from argument ------------
 sock = ARGV[0]
 if sock.nil?
 	puts "error sock"
@@ -26,29 +31,31 @@ end
 
 
 # ------------ working ------------
+
 # recieve
 maxreqsize = 1024
 request = sess.recv maxreqsize
-#puts "recieve: #{buf}"
-# TODO parse request
+sess.close_read
 
 
-# TODO content
-content = "<div>ruuubyyy</div>"
-
-
-
-# status
-status 	= "200 OK"
-cntype 	= "text/html;charset=utf-8"
-cntsize	= content.length
+# worker
+worker = Zesir::Worker.new
+# parse request
+worker.do_parse_request request
 # response
+response = worker.do_response
+
+
+# headers
+status 	= response.status
+cntype 	= response.content_type
+cntsize	= response.content.length
+# msg content
 resp = "HTTP/1.0 #{status}\nServer: zex\nContent-Type: #{cntype}\nStatus: #{status}\nContent-Length: #{cntsize}\n\n"
-resp += content
+resp += response.content
 resp += "\n\r\r"
 # send
 sess.print resp
-
 
 # ------------ close ------------
 sess.close
